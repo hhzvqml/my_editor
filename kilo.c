@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<sys/types.h>
 #include<termios.h>
 #include<unistd.h>
 #include<stdlib.h>
@@ -14,21 +15,25 @@
 #define KILO_VERSION "0.0.1" 
 
 /***struct define***/
+
+typedef struct erow{
+	int size;
+	char *chars;
+}erow;
 struct editorConfig{
 	int cx,cy;
 	struct termios origal_raw;
 	int screenrows;
 	int screencols;
+    int numrows;
+    erow row;
 };
 
 struct abuf{
 	char *b;
 	int len;
 };
-typedef struct erow{
-	int size;
-	char *chars;
-}erow;
+
 
 
 enum editorKey{
@@ -50,6 +55,7 @@ void abAppend(struct abuf *ab,const char *s,int len);
 void abFree(struct abuf *ab);
 int getWindowSize(int* row,int* col);
 void init();
+void editorOpen();
 void editorMoveCursor(int key);
 /***function define***/
 
@@ -59,6 +65,7 @@ int main()
 {
 	enableRawMode();
 	init();
+    editorOpen();
 	while(1){
 		editorRefreshScreen();
 		editorProcessKeypress();
@@ -72,11 +79,21 @@ int main()
 void init(){
 	E.cx=0;
 	E.cy=0;
+    E.numrows=0;
 	if(getWindowSize(&E.screenrows,&E.screencols)==-1)die("getWindow wrong");
 }
 
 
-
+/***file I/O***/
+void editorOpen(){
+    char *line="Hello world!";
+    ssize_t linelen=13;
+    E.row.size=linelen;
+    E.row.chars=malloc(linelen+1);
+    memcpy(E.row.chars,line,linelen);
+    E.row.chars[linelen]='\0';
+    E.numrows=1;
+}
 
 
 
